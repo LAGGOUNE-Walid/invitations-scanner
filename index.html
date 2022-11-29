@@ -49,7 +49,7 @@ function renderInvitationsScanner() {
    html5QrcodeScanner.render(onScanSuccess);
 }	
 
-function onScanSuccess(decodedText, decodedResult) {
+async function onScanSuccess(decodedText, decodedResult) {
 	if(scaneMethod !== null) {
 		if(scanMethod == "invitations") {
 			var spinner = document.querySelector("#signatureSipnner");
