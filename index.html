@@ -8,16 +8,22 @@
 
 </head>
 <body>
-	<div class="container">
+	<div class="container mt-7">
 		<div class="row">
 			<div class="row">
-				<button type="button" class="btn btn-primary">Scan and verify Invitation</button>
+				<button type="button" onclick="renderInvitationsScanner()" class="btn btn-light">
+					Scan and verify Invitation
+					<div class="spinner-border text-primary" id="signatureSipnner" role="status" style="display: hidden;">
+					  <span class="visually-hidden">Loading...</span>
+					</div>
+
+				</button>
 			</div>
-			<div class="row">
-				<button type="button" class="btn btn-primary">Scan checkin</button>
+			<div class="row mt-3">
+				<button type="button" class="btn btn-light">Scan checkin</button>
 			</div>
-			<div class="row">
-				<button type="button" class="btn btn-primary">Scan checkout</button>
+			<div class="row mt-3">
+				<button type="button" class="btn btn-light">Scan checkout</button>
 			</div>
 		</div>
 	</div>
@@ -32,19 +38,34 @@
 let html5QrcodeScanner = new Html5QrcodeScanner(
   "reader",
   { fps: 10, qrbox: {width: 250, height: 250} },
-  /* verbose= */ false);
+  false);
 	
+let url = "http://api.celec-club.com";
+	
+var scanMethod = null;
+
+function renderInvitationsScanner() {
+   scanMethod = "invitations"
+   html5QrcodeScanner.render(onScanSuccess);
+}	
+
 function onScanSuccess(decodedText, decodedResult) {
-  // handle the scanned code as you like, for example:
-	alert(`Code matched = ${decodedText}`, decodedResult);
+	if(scaneMethod !== null) {
+		if(scanMethod == "invitations") {
+			var spinner = document.querySelector("#signatureSipnner");
+			spinner.style.visibility = "visible";
+			await fetch(url+"/api/invitation/signature/paper/check?signature="+decodedText, {
+				headers: {
+      					'Content-Type': 'application/json'
+    				}
+			}).then(function(response) {
+				alert(response);
+			});
+			spinner.style.visibility = "hidden";
+			html5QrcodeScanner.clear();
+		}	
+	}
 }
-
-function onScanFailure(error) {
-  // handle scan failure, usually better to ignore and keep scanning.
-  // for example:
-//   alert(`Code scan error = ${error}`);
-}
-
 
 // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 </script>
