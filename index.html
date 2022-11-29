@@ -5,34 +5,44 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>CELEC Invtiations scanner</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+	
 
 </head>
 <body>
-	<div class="container mt-7">
-		<div class="row">
-			<div class="row">
+	<div class="container-fluid mt-5">
+        <div class="d-grid gap-2">
 				<button type="button" onclick="renderInvitationsScanner()" class="btn btn-light">
 					Scan and verify Invitation
-					<div class="spinner-border text-primary" id="signatureSipnner" role="status" style="visibility: hidden !important;">
+					<div style="display: none;" class="spinner-border text-primary btn-block" id="signatureSipnner" role="status">
 					  <span class="visually-hidden">Loading...</span>
 					</div>
 
 				</button>
-			</div>
-			<div class="row mt-3">
-				<button type="button" class="btn btn-light">Scan checkin</button>
-			</div>
-			<div class="row mt-3">
-				<button type="button" class="btn btn-light">Scan checkout</button>
-			</div>
-		</div>
+
+				<button type="button" onclick="renderCheckInScanner()" class="btn btn-light btn-block mt-3">
+				    Scan checkin
+				    <div style="display: none;" class="spinner-border text-primary btn-block" id="checkinSipnner" role="status">
+					  <span class="visually-hidden">Loading...</span>
+					</div>
+				</button>
+
+				<button type="button" onclick="renderCheckOutScanner()" class="btn btn-light btn-block mt-3">
+				    Scan checkout
+				    <div style="display: none;" class="spinner-border text-primary btn-block" id="checkoutSipnner" role="status">
+					  <span class="visually-hidden">Loading...</span>
+					</div>
+				</button>
+				<p class="text-center text-secondary">CELEC 2022</p>
+        </div>
+        
 	</div>
 <div id="reader" width="600px" height="600px"></div>
 </body>
 <script type="text/javascript" src="https://unpkg.com/html5-qrcode"></script>
 <!-- JavaScript Bundle with Popper -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script> 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script type="text/javascript">
 	
 let html5QrcodeScanner = new Html5QrcodeScanner(
@@ -43,29 +53,129 @@ let html5QrcodeScanner = new Html5QrcodeScanner(
 let url = "http://api.celec-club.com";
 	
 var scanMethod = null;
+var previousDecodedText = null;
+
 
 function renderInvitationsScanner() {
-   scanMethod = "invitations"
-   html5QrcodeScanner.render(onScanSuccess);
-}	
-
-async function onScanSuccess(decodedText, decodedResult) {
-	if(scaneMethod !== null) {
-		if(scanMethod == "invitations") {
-			var spinner = document.querySelector("#signatureSipnner");
-			spinner.style.visibility = "visible";
-			await fetch(url+"/api/invitation/signature/paper/check?signature="+decodedText, {
+   
+   html5QrcodeScanner.render(function(decodedText) {
+       if(previousDecodedText !== decodedText) {
+            var spinner = document.querySelector("#signatureSipnner");
+            spinner.style.display="inline-block";
+            previousDecodedText = decodedText;
+            fetch(url+"/api/invitation/signature/paper/check?signature="+decodedText, {
 				headers: {
       					'Content-Type': 'application/json'
-    				}
-			}).then(function(response) {
-				alert(response);
-			});
-			spinner.style.visibility = "hidden";
-			html5QrcodeScanner.clear();
-		}	
-	}
+    			},
+    			method: 'POST',
+    			cache: 'no-cache'
+			})
+			.then(function(response) {
+			    if(response.status !== 200) {
+			        Swal.fire({
+                      title: 'Error!',
+                      text: 'Signature verfications failed with status code of :'+ response.status,
+                      icon: 'error',
+                      confirmButtonText: 'Ok'
+                    });
+			    }else {
+			        Swal.fire({
+                        title: 'success!',
+                        text: 'Signature verfications succeed : '+ decodedText,
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                    });
+			    }
+				
+                html5QrcodeScanner.clear();
+			    spinner.style.display="none";
+			    previousDecodedText = null;
+			})
+			
+        }
+   });
 }
+
+function renderCheckInScanner() {
+   
+   html5QrcodeScanner.render(function(decodedText) {
+       if(previousDecodedText !== decodedText) {
+            var spinner = document.querySelector("#checkinSipnner");
+            spinner.style.display="inline-block";
+            previousDecodedText = decodedText;
+            fetch(url+"/api/invitation/signature/paper/checkin?signature="+decodedText, {
+				headers: {
+      					'Content-Type': 'application/json'
+    			},
+    			method: 'POST',
+    			cache: 'no-cache'
+			})
+			.then(function(response) {
+			    if(response.status !== 201) {
+			        Swal.fire({
+                      title: 'Error!',
+                      text: 'CheckIn failed with status code of :'+ response.status,
+                      icon: 'error',
+                      confirmButtonText: 'Ok'
+                    });
+			    }else {
+			        Swal.fire({
+                        title: 'success!',
+                        text: 'CheckIn verfications succeed : '+ decodedText,
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                    });
+			    }
+				
+                html5QrcodeScanner.clear();
+			    spinner.style.display="none";
+			    previousDecodedText = null;
+			})
+			
+        }
+   });
+}
+
+function renderCheckOutScanner() {
+   
+   html5QrcodeScanner.render(function(decodedText) {
+       if(previousDecodedText !== decodedText) {
+            var spinner = document.querySelector("#checkoutSipnner");
+            spinner.style.display="inline-block";
+            previousDecodedText = decodedText;
+            fetch(url+"/api/invitation/signature/paper/checkout?signature="+decodedText, {
+				headers: {
+      					'Content-Type': 'application/json'
+    			},
+    			method: 'POST',
+    			cache: 'no-cache'
+			})
+			.then(function(response) {
+			    if(response.status !== 201) {
+			        Swal.fire({
+                      title: 'Error!',
+                      text: 'CheckOut failed with status code of :'+ response.status,
+                      icon: 'error',
+                      confirmButtonText: 'Ok'
+                    });
+			    }else {
+			        Swal.fire({
+                        title: 'success!',
+                        text: 'CheckOut verfications succeed : '+ decodedText,
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                    });
+			    }
+				
+                html5QrcodeScanner.clear();
+			    spinner.style.display="none";
+			    previousDecodedText = null;
+			})
+			
+        }
+   });
+}
+
 
 // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 </script>
