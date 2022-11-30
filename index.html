@@ -127,7 +127,8 @@ function renderCheckInScanner() {
                     });
 			    }
 				
-                html5QrcodeScanner.clear();
+                 	html5QrcodeScanner.stop();
+		    html5QrcodeScanner.clear();
 			    spinner.style.display="none";
 			    previousDecodedText = null;
 			})
@@ -151,7 +152,7 @@ function renderCheckOutScanner() {
     			cache: 'no-cache'
 			})
 			.then(function(response) {
-			    if(response.status !== 201) {
+			    if(response.status !== 200) {
 			        Swal.fire({
                       title: 'Error!',
                       text: 'CheckOut failed with status code of :'+ response.status,
