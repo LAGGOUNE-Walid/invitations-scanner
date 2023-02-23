@@ -91,10 +91,14 @@ function renderInvitationsScanner() {
                 html5QrcodeScanner.clear();
 			    spinner.style.display="none";
 			    previousDecodedText = null;
+		    	    delay(2000)
 			})
 			
         }
    });
+}
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
 }
 
 function renderCheckInScanner() {
